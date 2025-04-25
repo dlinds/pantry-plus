@@ -1,13 +1,15 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   productsAtom,
   searchTermAtom,
   isLoadingAtom,
+  userLocationAtom,
   type Product,
 } from "@/store/atoms";
+import Link from "next/link";
 
 // Define types for Kroger API response
 interface KrogerProductImage {
@@ -39,10 +41,25 @@ export default function ProductSearch() {
   const [searchTerm, setSearchTerm] = useAtom(searchTermAtom);
   const [products, setProducts] = useAtom(productsAtom);
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
-  const [locationId, setLocationId] = useState("70100"); // Example Kroger location ID
+  const [userLocation] = useAtom(userLocationAtom);
+  const [locationId, setLocationId] = useState("");
+
+  // Use the saved location if available
+  useEffect(() => {
+    if (userLocation) {
+      setLocationId(userLocation.id);
+    }
+  }, [userLocation]);
 
   const searchProducts = async () => {
-    if (!searchTerm || !locationId) return;
+    if (!searchTerm || !locationId) {
+      alert(
+        locationId
+          ? "Please enter a search term"
+          : "Please select a store location first"
+      );
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -80,6 +97,17 @@ export default function ProductSearch() {
     <div className="p-4 border rounded-lg shadow-sm">
       <h2 className="text-xl font-bold mb-4">Product Search</h2>
 
+      {!userLocation && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+          <p className="text-yellow-700 mb-2">
+            You haven&apos;t selected a store location yet.
+          </p>
+          <Link href="/account" className="text-blue-500 hover:underline">
+            Go to Account Settings to set your store location
+          </Link>
+        </div>
+      )}
+
       <div className="flex gap-2 mb-4">
         <input
           type="text"
@@ -89,13 +117,19 @@ export default function ProductSearch() {
           className="flex-1 px-3 py-2 border rounded"
         />
 
-        <input
-          type="text"
-          value={locationId}
-          onChange={(e) => setLocationId(e.target.value)}
-          placeholder="Location ID"
-          className="w-32 px-3 py-2 border rounded"
-        />
+        {userLocation ? (
+          <div className="px-3 py-2 border rounded bg-gray-50 text-sm">
+            Store: {userLocation.name}
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={locationId}
+            onChange={(e) => setLocationId(e.target.value)}
+            placeholder="Location ID"
+            className="w-32 px-3 py-2 border rounded"
+          />
+        )}
 
         <button
           onClick={searchProducts}

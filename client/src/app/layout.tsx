@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import JotaiProvider from "@/components/JotaiProvider";
 import Navigation from "@/components/Navigation";
+import UserProvider from "@/components/UserProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,8 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <JotaiProvider>
-          <Navigation />
-          {children}
+          <UserProvider>
+            <Navigation />
+            {children}
+          </UserProvider>
         </JotaiProvider>
       </body>
     </html>

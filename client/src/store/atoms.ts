@@ -137,3 +137,22 @@ export const mockRecipes: Recipe[] = [
 ];
 
 export const recipesAtom = atom<Recipe[]>(mockRecipes);
+
+// User location for Kroger store
+export interface KrogerLocation {
+  id: string;
+  name: string;
+  address: string;
+}
+
+export const userLocationAtom = atom<KrogerLocation | null>(null);
+
+// Kroger user authentication
+export interface KrogerUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+}
+
+export const krogerUserAtom = atom<KrogerUser | null>(null);
