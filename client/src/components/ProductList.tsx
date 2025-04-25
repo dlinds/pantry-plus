@@ -42,8 +42,8 @@ export const ProductList = () => {
           )}
           <h3>{product.description}</h3>
           <h3 className="font-medium">
-            {product.aisleLocations.map((aisle) => (
-              <div key={aisle.number}>Aisle {aisle.number}</div>
+            {product.aisleLocations.map((aisle, index) => (
+              <div key={`${aisle.number}-${index}`}>Aisle {aisle.number}</div>
             ))}
           </h3>
           <p className="text-green-600">${product?.price?.toFixed(2)}</p>
