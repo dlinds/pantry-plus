@@ -155,4 +155,33 @@ export interface KrogerUser {
   email?: string;
 }
 
-export const krogerUserAtom = atom<KrogerUser | null>(null);
+// Initialize krogerUser from localStorage if available
+const getInitialKrogerUser = (): KrogerUser | null => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const storedUser = localStorage.getItem("krogerUser");
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error("Error parsing stored kroger user:", error);
+    return null;
+  }
+};
+
+// Create atom with persistence
+export const krogerUserAtom = atom<KrogerUser | null>(getInitialKrogerUser());
+
+// Create a derived atom with write capability to update both state and localStorage
+export const persistentKrogerUserAtom = atom(
+  (get) => get(krogerUserAtom),
+  (get, set, user: KrogerUser | null) => {
+    set(krogerUserAtom, user);
+    if (typeof window !== "undefined") {
+      if (user) {
+        localStorage.setItem("krogerUser", JSON.stringify(user));
+      } else {
+        localStorage.removeItem("krogerUser");
+      }
+    }
+  }
+);

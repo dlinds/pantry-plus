@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { krogerUserAtom } from "@/store/atoms";
+import { persistentKrogerUserAtom } from "@/store/atoms";
 
 export default function KrogerAuthCallback() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [, setKrogerUser] = useAtom(krogerUserAtom);
+  const [, setKrogerUser] = useAtom(persistentKrogerUserAtom);
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(true);
 

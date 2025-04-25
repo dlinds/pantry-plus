@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { userLocationAtom, krogerUserAtom } from "@/store/atoms";
+import { userLocationAtom, persistentKrogerUserAtom } from "@/store/atoms";
 import KrogerLogin from "@/components/KrogerLogin";
 import Link from "next/link";
 
@@ -34,7 +34,7 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [userLocation, setUserLocation] = useAtom(userLocationAtom);
-  const [krogerUser] = useAtom(krogerUserAtom);
+  const [krogerUser] = useAtom(persistentKrogerUserAtom);
 
   const searchLocations = async () => {
     if (!zipCode) {

@@ -645,6 +645,70 @@ app.get("/auth/callback", (req: Request, res: Response) => {
   }
 });
 
+// Auto sign-in endpoint to validate a stored user
+app.post("/api/auth/kroger/validate", async (req: Request, res: Response) => {
+  try {
+    const { krogerId } = req.body;
+
+    if (!krogerId) {
+      return res.status(400).json({
+        success: false,
+        error: "Kroger ID is required",
+      });
+    }
+
+    // Find user in database
+    const user = await findUserByKrogerId(krogerId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    // Get tokens from database
+    const tokens = await getUserToken(user.id);
+
+    if (!tokens) {
+      return res.status(401).json({
+        success: false,
+        error: "No valid token found for user",
+      });
+    }
+
+    // Try to fetch the latest profile data to verify the token is still valid
+    try {
+      const userProfile = await fetchKrogerUserProfile(tokens.accessToken);
+
+      // Return the validated user profile
+      return res.json({
+        success: true,
+        user: {
+          id: userProfile.id,
+          firstName: userProfile.firstName,
+          lastName: userProfile.lastName,
+          email: userProfile.email,
+        },
+      });
+    } catch (error) {
+      // If token has expired, try to refresh it (in a real app)
+      // For now, just return that validation failed
+      console.error("Error validating user token:", (error as Error).message);
+      return res.status(401).json({
+        success: false,
+        error: "User session expired",
+      });
+    }
+  } catch (error) {
+    console.error("Error validating user:", (error as Error).message);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to validate user session",
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

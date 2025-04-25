@@ -4,6 +4,7 @@ import "./globals.css";
 import JotaiProvider from "@/components/JotaiProvider";
 import Navigation from "@/components/Navigation";
 import UserProvider from "@/components/UserProvider";
+import React from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 

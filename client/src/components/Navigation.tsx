@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAtom } from "jotai";
-import { krogerUserAtom } from "@/store/atoms";
+import { persistentKrogerUserAtom } from "@/store/atoms";
 
 export default function Navigation() {
   const pathname = usePathname();
-  const [krogerUser] = useAtom(krogerUserAtom);
+  const [krogerUser] = useAtom(persistentKrogerUserAtom);
 
   const isActive = (path: string) => {
     return pathname === path;

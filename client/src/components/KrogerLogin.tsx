@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { krogerUserAtom } from "@/store/atoms";
+import { persistentKrogerUserAtom } from "@/store/atoms";
 
 interface KrogerLoginProps {
   className?: string;
@@ -16,7 +16,7 @@ export default function KrogerLogin({ className = "" }: KrogerLoginProps) {
   console.log("KrogerLogin component rendered");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [krogerUser] = useAtom(krogerUserAtom);
+  const [krogerUser, setKrogerUser] = useAtom(persistentKrogerUserAtom);
 
   const initiateLogin = async () => {
     setIsLoading(true);
@@ -46,8 +46,20 @@ export default function KrogerLogin({ className = "" }: KrogerLoginProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/kroger/logout", { method: "POST" });
-      // Force a page reload to clear state
+      if (krogerUser) {
+        await fetch("/api/auth/kroger/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ krogerId: krogerUser.id }),
+        });
+      }
+
+      // Clear user from local storage and state
+      setKrogerUser(null);
+
+      // Force a page reload to clear any remaining state
       window.location.href = "/";
     } catch (error) {
       console.error("Error logging out:", error);
