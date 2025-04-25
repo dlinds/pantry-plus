@@ -16,6 +16,7 @@ import {
   saveUserLocation,
   getUserLocation,
   saveUserCartItem,
+  getUserCartItems,
 } from "./database";
 
 interface KrogerUserProfile {
@@ -723,6 +724,25 @@ app.post("/api/cart/add", async (req: Request, res: Response) => {
   await saveUserCartItem(user.id, product, 1);
 
   res.json({ success: true, message: "Item added to cart" });
+});
+
+// get cart items for a user
+app.get("/api/cart/items", async (req: Request, res: Response) => {
+  const { krogerId } = req.query;
+
+  if (!krogerId) {
+    return res.status(400).json({ error: "Kroger ID is required" });
+  }
+
+  const user = await findUserByKrogerId(krogerId as string);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const cartItems = await getUserCartItems(user.id);
+
+  res.json(cartItems);
 });
 
 // Start server

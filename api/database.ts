@@ -122,22 +122,22 @@ async function setupDatabase(): Promise<void> {
       console.log("Created locations table");
     }
 
-    const hasProductsTable = await db.schema.hasTable("products");
+    const hasProductsTable = await db.schema.hasTable("product");
     if (!hasProductsTable) {
-      await db.schema.createTable("products", (table) => {
+      await db.schema.createTable("product", (table) => {
         table.increments("id").primary();
-        table.string("product_id").notNullable();
-        table.string("name").notNullable();
-        table.string("aisle_bay_number").notNullable();
-        table.string("aisle_description").notNullable();
-        table.string("aisle_number").notNullable();
-        table.string("aisle_number_of_facings").notNullable();
-        table.string("aisle_side").notNullable();
-        table.string("aisle_shelf_number").notNullable();
-        table.string("aisle_shelf_position_in_bay").notNullable();
+        table.string("product_id").nullable();
+        table.string("name").nullable();
+        table.string("aisle_bay_number").nullable();
+        table.string("aisle_description").nullable();
+        table.string("aisle_number").nullable();
+        table.string("aisle_number_of_facings").nullable();
+        table.string("aisle_side").nullable();
+        table.string("aisle_shelf_number").nullable();
+        table.string("aisle_shelf_position_in_bay").nullable();
 
-        table.json("image_url").notNullable();
-        table.json("price").notNullable();
+        table.json("image_url").nullable();
+        table.json("price").nullable();
         table.timestamps(true, true);
       });
     }
@@ -151,7 +151,7 @@ async function setupDatabase(): Promise<void> {
           .integer("product_id")
           .unsigned()
           .references("id")
-          .inTable("products");
+          .inTable("product");
         table.integer("quantity").notNullable();
         table.timestamps(true, true);
       });
@@ -272,7 +272,7 @@ async function saveUserCartItem(
   product: Product,
   quantity: number
 ): Promise<number[]> {
-  const newProductToInsert = await db("products").insert({
+  const newProductToInsert = await db("product").insert({
     product_id: product.id,
     name: product.description,
     aisle_bay_number: product.aisle_bay_number,
@@ -293,6 +293,22 @@ async function saveUserCartItem(
   });
 }
 
+async function getUserCartItems(userId: number): Promise<Product[]> {
+  const cartItems = await db("user_cart_items")
+    .where("user_id", userId)
+    .select("*")
+    .leftJoin("product", "user_cart_items.product_id", "product.id");
+
+  const filteredNulls = cartItems.filter((item) => item.product_id !== null);
+
+  const filterDuplicateProductIds = filteredNulls.filter(
+    (item, index, self) =>
+      index === self.findIndex((t) => t.product_id === item.product_id)
+  );
+
+  return filterDuplicateProductIds;
+}
+
 export {
   db,
   setupDatabase,
@@ -304,4 +320,5 @@ export {
   saveUserLocation,
   getUserLocation,
   saveUserCartItem,
+  getUserCartItems,
 };

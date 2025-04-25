@@ -170,6 +170,9 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
 .inline-flex {
   display: inline-flex;
 }
+.table {
+  display: table;
+}
 .h-full {
   height: 100%;
 }
@@ -182,8 +185,14 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
 .flex-1 {
   flex: 1;
 }
+.border-collapse {
+  border-collapse: collapse;
+}
 .cursor-pointer {
   cursor: pointer;
+}
+.resize {
+  resize: both;
 }
 .list-decimal {
   list-style-type: decimal;
@@ -258,6 +267,9 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
 .bg-blue-500 {
   background-color: var(--color-blue-500);
 }
+.bg-blue-600 {
+  background-color: var(--color-blue-600);
+}
 .bg-blue-600\/30 {
   background-color: color-mix(in srgb, oklch(0.546 0.245 262.881) 30%, transparent);
   @supports (color: color-mix(in lab, red, red)) {
@@ -291,11 +303,24 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
 .text-blue-600 {
   color: var(--color-blue-600);
 }
+.text-blue-700 {
+  color: var(--color-blue-700);
+}
 .text-blue-800 {
   color: var(--color-blue-800);
 }
 .text-red-500 {
   color: var(--color-red-500);
+}
+.italic {
+  font-style: italic;
+}
+.underline {
+  text-decoration-line: underline;
+}
+.outline {
+  outline-style: var(--tw-outline-style);
+  outline-width: 1px;
 }
 .transition-all {
   transition-property: all;
@@ -438,6 +463,7 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
   --color-blue-300: oklch(0.809 0.105 251.813);
   --color-blue-500: oklch(0.623 0.214 259.815);
   --color-blue-600: oklch(0.546 0.245 262.881);
+  --color-blue-700: oklch(0.488 0.243 264.376);
   --color-blue-800: oklch(0.424 0.199 265.638);
 }
 @property --tw-border-style {
@@ -487,6 +513,11 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
   inherits: false;
   initial-value: 100%;
 }
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @property --tw-duration {
   syntax: "*";
   inherits: false;
@@ -504,6 +535,7 @@ button, input:where([type='button'], [type='reset'], [type='submit']), ::file-se
       --tw-gradient-from-position: 0%;
       --tw-gradient-via-position: 50%;
       --tw-gradient-to-position: 100%;
+      --tw-outline-style: solid;
       --tw-duration: initial;
     }
   }
