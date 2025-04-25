@@ -388,17 +388,27 @@ app.post(
   "/api/auth/kroger/callback",
   async (req: AuthCallbackRequest, res: Response) => {
     try {
+      console.log("Received callback request with body:", req.body);
       const { code } = req.body;
 
       if (!code) {
+        console.log("No code provided in request body");
         return res
           .status(400)
           .json({ error: "Authorization code is required" });
       }
 
+      console.log("Attempting to exchange code for tokens");
+      console.log("Using client ID:", config.kroger.clientId);
+      console.log("Using redirect URI:", config.kroger.redirectUri);
+
+      const renderedKrogerOAuthUrl = `${config.kroger.apiUrl}/connect/oauth2/token`;
+
+      console.log("Rendered Kroger OAuth URL:", renderedKrogerOAuthUrl);
+
       // Exchange the authorization code for tokens
       const tokenResponse = await axios({
-        method: "post",
+        method: "POST",
         url: `${config.kroger.apiUrl}/connect/oauth2/token`,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -407,12 +417,15 @@ app.post(
           ).toString("base64")}`,
         },
         data: new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: config.kroger.redirectUri,
+          // grant_type: "authorization_code",
+          grant_type: "client_credentials",
+          // scope: "product.compact",
+          // code,
+          // redirect_uri: config.kroger.redirectUri,
         }).toString(),
       });
 
+      console.log("Token exchange successful", tokenResponse.data);
       const { access_token, refresh_token, expires_in } = tokenResponse.data;
 
       // Fetch user profile with the access token
@@ -425,6 +438,8 @@ app.post(
         lastName: userProfile.lastName,
         email: userProfile.email,
       });
+
+      console.log("User stored in database", user);
 
       // Store tokens in database
       await saveUserToken(user.id, {
@@ -448,6 +463,7 @@ app.post(
         (error as Error).message
       );
       if (error && typeof error === "object" && "response" in error) {
+        console.error("Response status:", (error as any).response?.status);
         console.error("Response data:", (error as any).response?.data);
       }
       res.status(500).json({ error: "Failed to exchange code for tokens" });

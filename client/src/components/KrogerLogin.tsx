@@ -9,6 +9,11 @@ interface KrogerLoginProps {
 }
 
 export default function KrogerLogin({ className = "" }: KrogerLoginProps) {
+  console.log("KrogerLogin component rendered");
+  console.log("KrogerLogin component rendered");
+  console.log("KrogerLogin component rendered");
+  console.log("KrogerLogin component rendered");
+  console.log("KrogerLogin component rendered");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [krogerUser] = useAtom(krogerUserAtom);

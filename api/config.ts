@@ -16,7 +16,7 @@ const config: Config = {
   kroger: {
     clientId: process.env.KROGER_CLIENT_ID || "",
     clientSecret: process.env.KROGER_CLIENT_SECRET || "",
-    apiUrl: "https://api.kroger.com",
+    apiUrl: "https://api.kroger.com/v1",
     redirectUri: "http://localhost:3001/auth/callback",
   },
 };

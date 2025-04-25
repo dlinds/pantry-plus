@@ -303,12 +303,17 @@ app.get("/api/auth/kroger/authorize", (_req, res) => {
 });
 app.post("/api/auth/kroger/callback", async (req, res) => {
     try {
+        console.log("Received callback request with body:", req.body);
         const { code } = req.body;
         if (!code) {
+            console.log("No code provided in request body");
             return res
                 .status(400)
                 .json({ error: "Authorization code is required" });
         }
+        console.log("Attempting to exchange code for tokens");
+        console.log("Using client ID:", config_1.default.kroger.clientId);
+        console.log("Using redirect URI:", config_1.default.kroger.redirectUri);
         // Exchange the authorization code for tokens
         const tokenResponse = await (0, axios_1.default)({
             method: "post",
@@ -323,6 +328,7 @@ app.post("/api/auth/kroger/callback", async (req, res) => {
                 redirect_uri: config_1.default.kroger.redirectUri,
             }).toString(),
         });
+        console.log("Token exchange successful");
         const { access_token, refresh_token, expires_in } = tokenResponse.data;
         // Fetch user profile with the access token
         const userProfile = await fetchKrogerUserProfile(access_token);
@@ -351,7 +357,8 @@ app.post("/api/auth/kroger/callback", async (req, res) => {
     }
     catch (error) {
         console.error("Error exchanging code for tokens:", error.message);
-        if ("response" in error) {
+        if (error && typeof error === "object" && "response" in error) {
+            console.error("Response status:", error.response?.status);
             console.error("Response data:", error.response?.data);
         }
         res.status(500).json({ error: "Failed to exchange code for tokens" });
