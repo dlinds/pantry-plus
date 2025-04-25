@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAtom } from "jotai";
-import { persistentKrogerUserAtom } from "@/store/atoms";
+import { persistentKrogerUserAtom } from "@/store/kroger/atoms";
 
 export default function Navigation() {
   const pathname = usePathname();

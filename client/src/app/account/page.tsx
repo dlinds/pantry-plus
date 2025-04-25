@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { userLocationAtom, persistentKrogerUserAtom } from "@/store/atoms";
+import {
+  userLocationAtom,
+  persistentKrogerUserAtom,
+} from "@/store/kroger/atoms";
 import KrogerLogin from "@/components/KrogerLogin";
 import Link from "next/link";
 

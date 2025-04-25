@@ -4,9 +4,9 @@ import { ReactNode, useEffect, useRef } from "react";
 import { useAtom } from "jotai";
 import {
   userLocationAtom,
-  type KrogerLocation,
   persistentKrogerUserAtom,
-} from "@/store/atoms";
+} from "@/store/kroger/atoms";
+import { type KrogerLocation } from "@/store/kroger/types";
 
 interface UserProviderProps {
   children: ReactNode;

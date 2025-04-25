@@ -2,14 +2,15 @@
 
 import { useAtom } from "jotai";
 import { useState, useEffect } from "react";
-import {
-  productsAtom,
-  searchTermAtom,
-  isLoadingAtom,
-  userLocationAtom,
-  type Product,
-} from "@/store/atoms";
+import { userLocationAtom } from "@/store/kroger/atoms";
 import Link from "next/link";
+import {
+  searchTermAtom,
+  productsAtom,
+  isLoadingAtom,
+  Product,
+} from "@/store/atoms";
+import Image from "next/image";
 
 // Define types for Kroger API response
 interface KrogerProductImage {
@@ -147,10 +148,12 @@ export default function ProductSearch() {
           {products.map((product) => (
             <div key={product.id} className="border rounded p-3">
               {product.image && (
-                <img
+                <Image
                   src={product.image}
                   alt={product.name}
                   className="w-full h-40 object-contain mb-2"
+                  width={160}
+                  height={160}
                 />
               )}
               <h3 className="font-medium">{product.name}</h3>
