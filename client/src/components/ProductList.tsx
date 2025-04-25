@@ -2,9 +2,15 @@
 import { productsAtom } from "@/store/kroger/atoms";
 import { KrogerProduct } from "@/store/kroger/types";
 import { useAtom } from "jotai";
+import { addItemToCart } from "@/store/kroger/actions";
 
 export const ProductList = () => {
   const [products] = useAtom(productsAtom);
+
+  // addItemToCart
+  const handleAddItemToCart = async (product: KrogerProduct) => {
+    await addItemToCart(product);
+  };
 
   const findIdealImage = (product: KrogerProduct) => {
     const allSizes = product.images[0].sizes;
@@ -18,9 +24,13 @@ export const ProductList = () => {
   };
 
   return (
-    <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {products.map((product) => (
-        <div key={product.productId} className="border rounded p-3">
+        <div
+          key={product.productId}
+          className="border rounded p-3 cursor-pointer"
+          onClick={() => handleAddItemToCart(product)}
+        >
           {findIdealImage(product) && (
             <img
               src={findIdealImage(product)}
@@ -30,7 +40,7 @@ export const ProductList = () => {
               height={160}
             />
           )}
-          <h3 className="font-medium">{product.name}</h3>
+          <h3>{product.description}</h3>
           <h3 className="font-medium">
             {product.aisleLocations.map((aisle) => (
               <div key={aisle.number}>Aisle {aisle.number}</div>

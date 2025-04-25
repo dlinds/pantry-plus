@@ -54,6 +54,20 @@ interface LocationData {
   address: Record<string, any>;
 }
 
+interface Product {
+  id: string;
+  description: string;
+  aisle_bay_number: string;
+  aisle_description: string;
+  aisle_number: string;
+  aisle_number_of_facings: string;
+  aisle_side: string;
+  aisle_shelf_number: string;
+  aisle_shelf_position_in_bay: string;
+  price: number;
+  image_url: string;
+}
+
 // Initialize knex connection
 const db = knex({
   client: "sqlite3",
@@ -106,6 +120,42 @@ async function setupDatabase(): Promise<void> {
         table.timestamps(true, true);
       });
       console.log("Created locations table");
+    }
+
+    const hasProductsTable = await db.schema.hasTable("products");
+    if (!hasProductsTable) {
+      await db.schema.createTable("products", (table) => {
+        table.increments("id").primary();
+        table.string("product_id").notNullable();
+        table.string("name").notNullable();
+        table.string("aisle_bay_number").notNullable();
+        table.string("aisle_description").notNullable();
+        table.string("aisle_number").notNullable();
+        table.string("aisle_number_of_facings").notNullable();
+        table.string("aisle_side").notNullable();
+        table.string("aisle_shelf_number").notNullable();
+        table.string("aisle_shelf_position_in_bay").notNullable();
+
+        table.json("image_url").notNullable();
+        table.json("price").notNullable();
+        table.timestamps(true, true);
+      });
+    }
+
+    const hasUserCartItemsTable = await db.schema.hasTable("user_cart_items");
+    if (!hasUserCartItemsTable) {
+      await db.schema.createTable("user_cart_items", (table) => {
+        table.increments("id").primary();
+        table.integer("user_id").unsigned().references("id").inTable("users");
+        table
+          .integer("product_id")
+          .unsigned()
+          .references("id")
+          .inTable("products");
+        table.integer("quantity").notNullable();
+        table.timestamps(true, true);
+      });
+      console.log("Created user_cart_items table");
     }
 
     console.log("Database setup complete");
@@ -217,6 +267,32 @@ async function getUserLocation(userId: number): Promise<LocationData | null> {
   };
 }
 
+async function saveUserCartItem(
+  userId: number,
+  product: Product,
+  quantity: number
+): Promise<number[]> {
+  const newProductToInsert = await db("products").insert({
+    product_id: product.id,
+    name: product.description,
+    aisle_bay_number: product.aisle_bay_number,
+    aisle_description: product.aisle_description,
+    aisle_number: product.aisle_number,
+    aisle_number_of_facings: product.aisle_number_of_facings,
+    aisle_side: product.aisle_side,
+    aisle_shelf_number: product.aisle_shelf_number,
+    aisle_shelf_position_in_bay: product.aisle_shelf_position_in_bay,
+    image_url: product.image_url,
+    price: product.price,
+  });
+
+  return db("user_cart_items").insert({
+    user_id: userId,
+    product_id: newProductToInsert[0],
+    quantity: quantity,
+  });
+}
+
 export {
   db,
   setupDatabase,
@@ -227,4 +303,5 @@ export {
   getUserToken,
   saveUserLocation,
   getUserLocation,
+  saveUserCartItem,
 };

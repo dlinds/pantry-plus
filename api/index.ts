@@ -15,6 +15,7 @@ import {
   getUserToken,
   saveUserLocation,
   getUserLocation,
+  saveUserCartItem,
 } from "./database";
 
 interface KrogerUserProfile {
@@ -707,6 +708,21 @@ app.post("/api/auth/kroger/validate", async (req: Request, res: Response) => {
       error: "Failed to validate user session",
     });
   }
+});
+
+// add an item to the cart
+app.post("/api/cart/add", async (req: Request, res: Response) => {
+  const { krogerId, product } = req.body;
+
+  const user = await findUserByKrogerId(krogerId);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  await saveUserCartItem(user.id, product, 1);
+
+  res.json({ success: true, message: "Item added to cart" });
 });
 
 // Start server
