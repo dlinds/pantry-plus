@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { persistentKrogerUserAtom } from "@/store/atoms";
+import { persistentKrogerUserAtom } from "@/store/kroger/atoms";
 
 interface KrogerLoginProps {
   className?: string;

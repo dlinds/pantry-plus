@@ -12,16 +12,7 @@ export const incrementCounterAtom = atom(
   (get, set) => set(counterAtom, get(counterAtom) + 1)
 );
 
-// Atom for product search from Kroger API
-export type Product = {
-  id: string;
-  name: string;
-  price: number;
-  image?: string;
-};
-
 export const searchTermAtom = atom("");
-export const productsAtom = atom<Product[]>([]);
 export const isLoadingAtom = atom(false);
 
 // Recipe types and data

@@ -4,39 +4,10 @@ import { useAtom } from "jotai";
 import { useState, useEffect } from "react";
 import { userLocationAtom } from "@/store/kroger/atoms";
 import Link from "next/link";
-import {
-  searchTermAtom,
-  productsAtom,
-  isLoadingAtom,
-  Product,
-} from "@/store/atoms";
-import Image from "next/image";
-
-// Define types for Kroger API response
-interface KrogerProductImage {
-  sizes: Array<{
-    url: string;
-  }>;
-}
-
-interface KrogerProductPrice {
-  regular: number;
-}
-
-interface KrogerProductItem {
-  price?: KrogerProductPrice;
-}
-
-interface KrogerProduct {
-  productId: string;
-  description: string;
-  items: KrogerProductItem[];
-  images: KrogerProductImage[];
-}
-
-interface KrogerResponse {
-  data: KrogerProduct[];
-}
+import { productsAtom } from "@/store/kroger/atoms";
+import { isLoadingAtom, searchTermAtom } from "@/store/atoms";
+import { KrogerResponse } from "@/store/kroger/types";
+import { ProductView } from "./Product";
 
 export default function ProductSearch() {
   const [searchTerm, setSearchTerm] = useAtom(searchTermAtom);
@@ -44,6 +15,8 @@ export default function ProductSearch() {
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
   const [userLocation] = useAtom(userLocationAtom);
   const [locationId, setLocationId] = useState("");
+
+  console.log(userLocation);
 
   // Use the saved location if available
   useEffect(() => {
@@ -76,17 +49,7 @@ export default function ProductSearch() {
 
       const data = (await response.json()) as KrogerResponse;
 
-      // Transform the data to match our Product type
-      const transformedProducts: Product[] = data.data.map(
-        (item: KrogerProduct) => ({
-          id: item.productId,
-          name: item.description,
-          price: item.items[0]?.price?.regular || 0,
-          image: item.images[0]?.sizes[0]?.url || "",
-        })
-      );
-
-      setProducts(transformedProducts);
+      setProducts(data.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
@@ -146,19 +109,7 @@ export default function ProductSearch() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
-            <div key={product.id} className="border rounded p-3">
-              {product.image && (
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-40 object-contain mb-2"
-                  width={160}
-                  height={160}
-                />
-              )}
-              <h3 className="font-medium">{product.name}</h3>
-              <p className="text-green-600">${product.price.toFixed(2)}</p>
-            </div>
+            <ProductView key={product.productId} product={product} />
           ))}
         </div>
       )}

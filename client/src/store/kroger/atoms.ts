@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { KrogerLocation, KrogerUser } from "./types";
+import { KrogerLocation, KrogerUser, KrogerProduct } from "./types";
 import { getInitialKrogerUser } from "./actions";
 
 export const userLocationAtom = atom<KrogerLocation | null>(null);
@@ -20,3 +20,5 @@ export const persistentKrogerUserAtom = atom(
     }
   }
 );
+
+export const productsAtom = atom<KrogerProduct[]>([]);

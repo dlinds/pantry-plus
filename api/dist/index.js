@@ -84,7 +84,6 @@ const getKrogerToken = async () => {
 const fetchKrogerUserProfile = async (accessToken) => {
     try {
         console.log("Fetching user profile with access token:", accessToken);
-        // Use the base URL without /v1 for the identity endpoint
         const krogerApiUrl = `https://api.kroger.com/v1/identity/profile`;
         console.log("Kroger API URL:", krogerApiUrl);
         const response = await (0, axios_1.default)({
@@ -95,14 +94,27 @@ const fetchKrogerUserProfile = async (accessToken) => {
                 Accept: "application/json",
             },
         });
-        console.log("User profile response", response.data);
-        return response.data.data;
+        console.log("User profile response:", JSON.stringify(response.data, null, 2));
+        // Check if response has expected structure
+        if (!response.data || !response.data.data) {
+            console.error("Unexpected response format from Kroger API:", response.data);
+            throw new Error("Invalid response format from Kroger API");
+        }
+        const profileData = response.data.data;
+        console.log("Profile data extracted:", profileData);
+        // Handle different response formats from Kroger API
+        return {
+            id: profileData.id || profileData.sub || "",
+            firstName: profileData.firstName || profileData.given_name || "",
+            lastName: profileData.lastName || profileData.family_name || "",
+            email: profileData.email || "",
+        };
     }
     catch (error) {
         console.error("Error fetching user profile:", error.message);
         if (error && typeof error === "object" && "response" in error) {
             console.error("Response status:", error.response?.status);
-            console.error("Response data:", error.response?.data);
+            console.error("Response data:", JSON.stringify(error.response?.data, null, 2));
         }
         throw error;
     }
@@ -177,6 +189,7 @@ app.get("/api/locations", async (req, res) => {
 app.post("/api/user/location", async (req, res) => {
     try {
         const { krogerId, locationId, name, address } = req.body;
+        console.log("Received location request:", req.body);
         if (!krogerId || !locationId || !name || !address) {
             return res.status(400).json({
                 error: "Missing required fields. Please provide krogerId, locationId, name, and address.",
@@ -486,6 +499,64 @@ app.get("/auth/callback", (req, res) => {
     catch (error) {
         console.error("Error handling Kroger redirect:", error.message);
         res.status(500).send("Authentication error. Please try again.");
+    }
+});
+// Auto sign-in endpoint to validate a stored user
+app.post("/api/auth/kroger/validate", async (req, res) => {
+    try {
+        const { krogerId } = req.body;
+        if (!krogerId) {
+            return res.status(400).json({
+                success: false,
+                error: "Kroger ID is required",
+            });
+        }
+        // Find user in database
+        const user = await (0, database_1.findUserByKrogerId)(krogerId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+        }
+        // Get tokens from database
+        const tokens = await (0, database_1.getUserToken)(user.id);
+        if (!tokens) {
+            return res.status(401).json({
+                success: false,
+                error: "No valid token found for user",
+            });
+        }
+        // Try to fetch the latest profile data to verify the token is still valid
+        try {
+            const userProfile = await fetchKrogerUserProfile(tokens.accessToken);
+            // Return the validated user profile
+            return res.json({
+                success: true,
+                user: {
+                    id: userProfile.id,
+                    firstName: userProfile.firstName,
+                    lastName: userProfile.lastName,
+                    email: userProfile.email,
+                },
+            });
+        }
+        catch (error) {
+            // If token has expired, try to refresh it (in a real app)
+            // For now, just return that validation failed
+            console.error("Error validating user token:", error.message);
+            return res.status(401).json({
+                success: false,
+                error: "User session expired",
+            });
+        }
+    }
+    catch (error) {
+        console.error("Error validating user:", error.message);
+        return res.status(500).json({
+            success: false,
+            error: "Failed to validate user session",
+        });
     }
 });
 // Start server
