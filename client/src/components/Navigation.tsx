@@ -22,16 +22,21 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-blue-500 text-white p-4">
-      <div className="max-w-5xl mx-auto flex justify-between items-center">
-        <div className="font-bold text-xl">Pantry Plus</div>
-        <div className="flex items-center">
-          <ul className="flex space-x-4 mr-6">
+    <nav className="bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <Link
+          href="/"
+          className="font-bold text-2xl tracking-tight hover:text-blue-100 transition-colors duration-200"
+        >
+          Pantry Plus
+        </Link>
+        <div className="flex items-center gap-6">
+          <ul className="hidden md:flex items-center space-x-6">
             <li>
               <Link
                 href="/"
-                className={`hover:underline ${
-                  isActive("/") ? "font-bold underline" : ""
+                className={`px-2 py-1 rounded-lg transition-all duration-200 hover:bg-blue-600/50 ${
+                  isActive("/") ? "font-semibold bg-blue-600/30" : ""
                 }`}
               >
                 Home
@@ -40,8 +45,8 @@ export default function Navigation() {
             <li>
               <Link
                 href="/recipes"
-                className={`hover:underline ${
-                  isRecipePath() ? "font-bold underline" : ""
+                className={`px-2 py-1 rounded-lg transition-all duration-200 hover:bg-blue-600/50 ${
+                  isRecipePath() ? "font-semibold bg-blue-600/30" : ""
                 }`}
               >
                 Recipes
@@ -50,8 +55,8 @@ export default function Navigation() {
             <li>
               <Link
                 href="/account"
-                className={`hover:underline ${
-                  isAccountPath() ? "font-bold underline" : ""
+                className={`px-2 py-1 rounded-lg transition-all duration-200 hover:bg-blue-600/50 ${
+                  isAccountPath() ? "font-semibold bg-blue-600/30" : ""
                 }`}
               >
                 Account
@@ -60,8 +65,8 @@ export default function Navigation() {
             <li>
               <Link
                 href="/about"
-                className={`hover:underline ${
-                  isActive("/about") ? "font-bold underline" : ""
+                className={`px-2 py-1 rounded-lg transition-all duration-200 hover:bg-blue-600/50 ${
+                  isActive("/about") ? "font-semibold bg-blue-600/30" : ""
                 }`}
               >
                 About
@@ -69,9 +74,10 @@ export default function Navigation() {
             </li>
           </ul>
 
-          {krogerUser && (
-            <div className="text-sm bg-blue-600 px-3 py-1 rounded">
-              Hi, {krogerUser.firstName}
+          {krogerUser && krogerUser.firstName && (
+            <div className="flex items-center gap-2 bg-blue-700 px-4 py-1.5 rounded-full text-sm font-medium shadow-sm hover:bg-blue-800 transition-colors duration-200">
+              <span className="hidden sm:inline">Welcome,</span>{" "}
+              {krogerUser.firstName}
             </div>
           )}
         </div>

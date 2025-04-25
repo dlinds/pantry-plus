@@ -174,7 +174,7 @@ export const krogerUserAtom = atom<KrogerUser | null>(getInitialKrogerUser());
 // Create a derived atom with write capability to update both state and localStorage
 export const persistentKrogerUserAtom = atom(
   (get) => get(krogerUserAtom),
-  (get, set, user: KrogerUser | null) => {
+  (_, set, user: KrogerUser | null) => {
     set(krogerUserAtom, user);
     if (typeof window !== "undefined") {
       if (user) {
