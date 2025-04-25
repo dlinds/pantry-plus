@@ -23,9 +23,12 @@ export interface KrogerLocation {
 
 // Define types for Kroger API response
 interface KrogerProductImage {
-  sizes: Array<{
-    url: string;
-  }>;
+  sizes: [
+    {
+      size: "xlarge" | "large" | "medium" | "small" | "thumbnail";
+      url: string;
+    }
+  ];
 }
 
 interface KrogerProductPrice {
@@ -36,6 +39,16 @@ interface KrogerProductItem {
   price?: KrogerProductPrice;
 }
 
+interface AisleLocation {
+  bayNumber: string;
+  description: string;
+  number: string;
+  numberOfFacings: string;
+  side: "L" | "R";
+  shelfNumber: string;
+  shelfPositionInBay: string;
+}
+
 export interface KrogerProduct {
   productId: string;
   name: string;
@@ -43,6 +56,7 @@ export interface KrogerProduct {
   description: string;
   items: KrogerProductItem[];
   images: KrogerProductImage[];
+  aisleLocations: AisleLocation[];
 }
 
 export interface KrogerResponse {

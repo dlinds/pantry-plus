@@ -7,7 +7,7 @@ import Link from "next/link";
 import { productsAtom } from "@/store/kroger/atoms";
 import { isLoadingAtom, searchTermAtom } from "@/store/atoms";
 import { KrogerResponse } from "@/store/kroger/types";
-import { ProductView } from "./Product";
+import { ProductList } from "./ProductList";
 
 export default function ProductSearch() {
   const [searchTerm, setSearchTerm] = useAtom(searchTermAtom);
@@ -104,15 +104,7 @@ export default function ProductSearch() {
         </button>
       </div>
 
-      {isLoading ? (
-        <p>Loading products...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
-            <ProductView key={product.productId} product={product} />
-          ))}
-        </div>
-      )}
+      {isLoading ? <p>Loading products...</p> : <ProductList />}
 
       {!isLoading && products.length === 0 && searchTerm && (
         <p>No products found. Try a different search term.</p>
