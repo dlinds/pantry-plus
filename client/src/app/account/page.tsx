@@ -78,6 +78,7 @@ export default function AccountPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          krogerId: krogerUser?.id,
           locationId: location.locationId,
           name: location.name,
           address: {

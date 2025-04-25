@@ -120,7 +120,6 @@ const fetchKrogerUserProfile = async (
 ): Promise<KrogerUserProfile> => {
   try {
     console.log("Fetching user profile with access token:", accessToken);
-    // Use the base URL without /v1 for the identity endpoint
     const krogerApiUrl = `https://api.kroger.com/v1/identity/profile`;
     console.log("Kroger API URL:", krogerApiUrl);
 
@@ -133,14 +132,38 @@ const fetchKrogerUserProfile = async (
       },
     });
 
-    console.log("User profile response", response.data);
+    console.log(
+      "User profile response:",
+      JSON.stringify(response.data, null, 2)
+    );
 
-    return response.data.data;
+    // Check if response has expected structure
+    if (!response.data || !response.data.data) {
+      console.error(
+        "Unexpected response format from Kroger API:",
+        response.data
+      );
+      throw new Error("Invalid response format from Kroger API");
+    }
+
+    const profileData = response.data.data;
+    console.log("Profile data extracted:", profileData);
+
+    // Handle different response formats from Kroger API
+    return {
+      id: profileData.id || profileData.sub || "",
+      firstName: profileData.firstName || profileData.given_name || "",
+      lastName: profileData.lastName || profileData.family_name || "",
+      email: profileData.email || "",
+    };
   } catch (error) {
     console.error("Error fetching user profile:", (error as Error).message);
     if (error && typeof error === "object" && "response" in error) {
       console.error("Response status:", (error as any).response?.status);
-      console.error("Response data:", (error as any).response?.data);
+      console.error(
+        "Response data:",
+        JSON.stringify((error as any).response?.data, null, 2)
+      );
     }
     throw error;
   }
@@ -227,6 +250,8 @@ app.post("/api/user/location", async (req: Request, res: Response) => {
   try {
     const { krogerId, locationId, name, address } =
       req.body as LocationRequestBody;
+
+    console.log("Received location request:", req.body);
 
     if (!krogerId || !locationId || !name || !address) {
       return res.status(400).json({
