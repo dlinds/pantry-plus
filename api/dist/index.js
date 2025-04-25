@@ -83,18 +83,27 @@ const getKrogerToken = async () => {
 // Helper function to fetch user profile from Kroger API
 const fetchKrogerUserProfile = async (accessToken) => {
     try {
+        console.log("Fetching user profile with access token:", accessToken);
+        // Use the base URL without /v1 for the identity endpoint
+        const krogerApiUrl = `https://api.kroger.com/v1/identity/profile`;
+        console.log("Kroger API URL:", krogerApiUrl);
         const response = await (0, axios_1.default)({
-            method: "get",
-            url: `${config_1.default.kroger.apiUrl}/identity/profile`,
+            method: "GET",
+            url: krogerApiUrl,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 Accept: "application/json",
             },
         });
+        console.log("User profile response", response.data);
         return response.data.data;
     }
     catch (error) {
         console.error("Error fetching user profile:", error.message);
+        if (error && typeof error === "object" && "response" in error) {
+            console.error("Response status:", error.response?.status);
+            console.error("Response data:", error.response?.data);
+        }
         throw error;
     }
 };
@@ -290,7 +299,7 @@ app.get("/api/auth/kroger/authorize", (_req, res) => {
         authUrl.searchParams.append("client_id", config_1.default.kroger.clientId);
         authUrl.searchParams.append("response_type", "code");
         authUrl.searchParams.append("redirect_uri", config_1.default.kroger.redirectUri);
-        authUrl.searchParams.append("scope", "product.compact"); // Start with just this scope
+        authUrl.searchParams.append("scope", "product.compact profile.compact"); // Include profile scope
         authUrl.searchParams.append("state", state);
         const authorizationUrl = authUrl.toString();
         console.log("Generated URL:", authorizationUrl);
@@ -314,21 +323,26 @@ app.post("/api/auth/kroger/callback", async (req, res) => {
         console.log("Attempting to exchange code for tokens");
         console.log("Using client ID:", config_1.default.kroger.clientId);
         console.log("Using redirect URI:", config_1.default.kroger.redirectUri);
+        // Create and log the exact token request parameters
+        const tokenRequestData = new URLSearchParams({
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: config_1.default.kroger.redirectUri,
+            scope: "product.compact profile.compact",
+        }).toString();
+        console.log("Token request data:", tokenRequestData);
         // Exchange the authorization code for tokens
         const tokenResponse = await (0, axios_1.default)({
-            method: "post",
+            method: "POST",
             url: `${config_1.default.kroger.apiUrl}/connect/oauth2/token`,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Basic ${Buffer.from(`${config_1.default.kroger.clientId}:${config_1.default.kroger.clientSecret}`).toString("base64")}`,
             },
-            data: new URLSearchParams({
-                grant_type: "authorization_code",
-                code,
-                redirect_uri: config_1.default.kroger.redirectUri,
-            }).toString(),
+            data: tokenRequestData,
         });
         console.log("Token exchange successful");
+        console.log("Token response:", JSON.stringify(tokenResponse.data, null, 2));
         const { access_token, refresh_token, expires_in } = tokenResponse.data;
         // Fetch user profile with the access token
         const userProfile = await fetchKrogerUserProfile(access_token);
@@ -339,6 +353,7 @@ app.post("/api/auth/kroger/callback", async (req, res) => {
             lastName: userProfile.lastName,
             email: userProfile.email,
         });
+        console.log("User stored in database", user);
         // Store tokens in database
         await (0, database_1.saveUserToken)(user.id, {
             accessToken: access_token,
@@ -413,6 +428,64 @@ app.post("/api/auth/kroger/logout", async (req, res) => {
     catch (error) {
         console.error("Error logging out:", error.message);
         res.status(500).json({ error: "Failed to log out" });
+    }
+});
+// Add a GET endpoint for the Kroger redirect
+app.get("/auth/callback", (req, res) => {
+    try {
+        const { code, state } = req.query;
+        console.log("Received Kroger redirect with code:", code);
+        console.log("Received Kroger redirect with state:", state);
+        // Render a simple page that passes the code to our frontend
+        res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authenticating...</title>
+          <script>
+            // Post the code to our API endpoint
+            async function sendCodeToBackend() {
+              try {
+                const response = await fetch('/api/auth/kroger/callback', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ 
+                    code: '${code}',
+                    state: '${state}'
+                  }),
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                  // Redirect to account page
+                  window.location.href = '/account';
+                } else {
+                  document.getElementById('status').innerText = 'Error: ' + (data.error || 'Unknown error');
+                }
+              } catch (error) {
+                document.getElementById('status').innerText = 'Error: ' + error.message;
+              }
+            }
+            
+            // Execute when page loads
+            window.onload = sendCodeToBackend;
+          </script>
+        </head>
+        <body>
+          <div style="text-align: center; margin-top: 100px;">
+            <h1>Completing Authentication</h1>
+            <p>Please wait while we complete your authentication...</p>
+            <div id="status"></div>
+          </div>
+        </body>
+      </html>
+    `);
+    }
+    catch (error) {
+        console.error("Error handling Kroger redirect:", error.message);
+        res.status(500).send("Authentication error. Please try again.");
     }
 });
 // Start server
