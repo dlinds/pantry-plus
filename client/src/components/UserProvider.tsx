@@ -1,12 +1,10 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { useAtom } from "jotai";
 import {
   userLocationAtom,
-  krogerUserAtom,
   type KrogerLocation,
-  type KrogerUser,
   persistentKrogerUserAtom,
 } from "@/store/atoms";
 
@@ -16,14 +14,16 @@ interface UserProviderProps {
 
 export default function UserProvider({ children }: UserProviderProps) {
   const [, setUserLocation] = useAtom(userLocationAtom);
-  const [, setKrogerUser] = useAtom(krogerUserAtom);
   const [user, setUserState] = useAtom(persistentKrogerUserAtom);
+  const validationPerformedRef = useRef(false);
 
+  // Fetch user location when user is available
   useEffect(() => {
-    // Fetch user location from API on mount
     const fetchUserLocation = async () => {
+      if (!user?.id) return; // Only fetch location if we have a user
+
       try {
-        const response = await fetch("/api/user/location");
+        const response = await fetch(`/api/user/location?krogerId=${user.id}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -43,41 +43,23 @@ export default function UserProvider({ children }: UserProviderProps) {
       }
     };
 
-    // Fetch Kroger user profile if logged in
-    const fetchKrogerUser = async () => {
-      try {
-        const response = await fetch("/api/auth/kroger/profile");
-
-        if (response.ok) {
-          const data = await response.json();
-
-          if (data.user) {
-            const user: KrogerUser = {
-              id: data.user.id,
-              firstName: data.user.firstName,
-              lastName: data.user.lastName,
-              email: data.user.email,
-            };
-
-            setKrogerUser(user);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching Kroger user profile:", error);
-      }
-    };
-
-    // Run both fetches in parallel
-    Promise.all([fetchUserLocation(), fetchKrogerUser()]);
-  }, [setUserLocation, setKrogerUser]);
+    // Fetch user location when user changes
+    fetchUserLocation();
+  }, [user?.id, setUserLocation]);
 
   // Effect to validate user session on page load
   useEffect(() => {
     const validateUserSession = async () => {
-      // Skip if no stored user or already in auth process
-      if (!user || window.location.pathname.includes("/auth/")) {
+      // Skip if no stored user, already in auth process, or already validated
+      if (
+        !user ||
+        window.location.pathname.includes("/auth/") ||
+        validationPerformedRef.current
+      ) {
         return;
       }
+
+      validationPerformedRef.current = true;
 
       try {
         console.log("Validating user session for:", user.id);
@@ -109,13 +91,11 @@ export default function UserProvider({ children }: UserProviderProps) {
         }
       } catch (error) {
         console.error("Error validating user session:", error);
-        // On error, keep the user logged in to avoid disruption
-        // A more strict approach would be to log them out
       }
     };
 
     validateUserSession();
-  }, [user, setUserState]);
+  }, [user?.id, setUserState]); // Only depend on user.id, not the whole user object
 
   return <>{children}</>;
 }
